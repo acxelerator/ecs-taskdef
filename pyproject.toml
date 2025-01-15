@@ -7,7 +7,7 @@ authors = [
 ]
 dependencies = [
     "pydantic>=2.10.5",
-    "boto3>=1.35.98",
+    "boto3",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
