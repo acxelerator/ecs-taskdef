@@ -8,6 +8,12 @@ class ULimit(BaseModel):
     hard_limit: int = Field(alias="hardLimit")
 
 
+class PortMapping(BaseModel):
+    container_port: int = Field(alias="containerPort")
+    host_port: int = Field(alias="hostPort")
+    protocol: str
+
+
 class LogConfigurationOptions(BaseModel):
     awslogs_group: str = Field(alias="awslogs-group")
     awslogs_region: str = Field(alias="awslogs-region")
@@ -18,6 +24,23 @@ class LogConfiguration(BaseModel):
     log_driver: str = Field(alias="logDriver")
     options: LogConfigurationOptions = Field(alias="options")
     secret_options: list = Field(alias="secretOptions")
+
+    @staticmethod
+    def generate(
+        group_name: str, stream_prefix: str, region: str = "ap-northeast-1"
+    ) -> "LogConfiguration":
+        options = LogConfigurationOptions(
+            **{
+                "awslogs-group": group_name,
+                "awslogs-region": region,
+                "awslogs-stream-prefix": stream_prefix,
+            }
+        )
+        return LogConfiguration(
+            logDriver="awslogs",
+            options=options,
+            secretOptions=[],
+        )
 
 
 class ContainerDefinition(BaseModel):
@@ -44,6 +67,51 @@ class ContainerDefinition(BaseModel):
     log_configuration: LogConfiguration = Field(alias="logConfiguration")
     system_controls: list = Field(alias="systemControls")
 
+    @staticmethod
+    def generate(
+        name: str,
+        image: str,
+        cpu: int,
+        memory_reservation: int,
+        environment: list[EnvironmentVariable],
+        port_mappings: list[PortMapping],
+        essential: bool,
+        log_configuration: LogConfiguration,
+    ) -> "ContainerDefinition":
+        return ContainerDefinition(
+            name=name,
+            image=image,
+            cpu=cpu,
+            memoryReservation=memory_reservation,
+            links=[],
+            portMappings=port_mappings,
+            essential=essential,
+            entryPoint=[],
+            command=[],
+            environment=environment,
+            environmentFiles=[],
+            mountPoints=[],
+            volumesFrom=[],
+            secrets=[],
+            dnsServers=[],
+            dnsSearchDomains=[],
+            extraHosts=[],
+            dockerSecurityOptions=[],
+            dockerLabels={},
+            ulimits=[],
+            logConfiguration=log_configuration,
+            systemControls=[],
+        )
+
+
+class RuntimePlatform(BaseModel):
+    cpu_architecture: str = Field(alias="cpuArchitecture")
+
+
+class Tag(BaseModel):
+    key: str
+    value: str
+
 
 class TaskDefinition(BaseModel):
     task_definition_arn: str = Field(alias="taskDefinitionArn")
@@ -63,6 +131,9 @@ class TaskDefinition(BaseModel):
     requires_compatibilities: list[str] = Field(alias="requiresCompatibilities")
     cpu: str = Field(alias="cpu")
     memory: str = Field(alias="memory")
+    runtime_platform: RuntimePlatform = Field(alias="runtimePlatform")
+    enable_fault_injection: bool = Field(alias="enableFaultInjection")
+    tags: list[Tag]
 
     def get_container_definition_by_name(self, name: str) -> ContainerDefinition | None:
         for c in self.container_definitions:
@@ -78,3 +149,10 @@ class TaskDefinition(BaseModel):
         ]
         self.container_definitions.append(container_definition)
         return self
+
+    def __repr__(self) -> str:
+        return f"""
+        cpu: {self.cpu}
+        memory: {self.memory}
+        cpu_architecture: {self.runtime_platform.cpu_architecture}
+        """
