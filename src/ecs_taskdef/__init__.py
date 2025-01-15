@@ -1,1 +1,1 @@
-from ecs_taskdef.domain.entity.task_definition import TaskDefinition
+from ecs_taskdef.domain.entity import TaskDefinition, EnvironmentVariable
