@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from .environment_variable import EnvironmentVariable
+from typing import Literal, Optional
 
 
 class ULimit(BaseModel):
@@ -114,7 +115,7 @@ class Tag(BaseModel):
 
 
 class TaskDefinition(BaseModel):
-    task_definition_arn: str = Field(alias="taskDefinitionArn")
+    task_definition_arn: Optional[str] = Field(alias="taskDefinitionArn")
     container_definitions: list[ContainerDefinition] = Field(
         alias="containerDefinitions"
     )
@@ -122,18 +123,50 @@ class TaskDefinition(BaseModel):
     task_role_arn: str = Field(alias="taskRoleArn")
     execution_role_arn: str = Field(alias="executionRoleArn")
     network_mode: str = Field(alias="networkMode")
-    revision: int = Field(alias="revision")
+    revision: Optional[int] = Field(alias="revision")
     volumes: list = Field(alias="volumes")
-    status: str = Field(alias="status")
-    requires_attributes: list = Field(alias="requiresAttributes")
+    status: Literal["ACTIVE", "INACTIVE"] = Field(alias="status")
+    requires_attributes: Optional[list] = Field(alias="requiresAttributes")
     placement_constraints: list = Field(alias="placementConstraints")
-    compatibilities: list[str] = Field(alias="compatibilities")
+    compatibilities: Optional[list[str]] = Field(alias="compatibilities")
     requires_compatibilities: list[str] = Field(alias="requiresCompatibilities")
     cpu: str = Field(alias="cpu")
     memory: str = Field(alias="memory")
     runtime_platform: RuntimePlatform = Field(alias="runtimePlatform")
     enable_fault_injection: bool = Field(alias="enableFaultInjection")
     tags: list[Tag]
+
+    @staticmethod
+    def generate(
+        container_definitions: list[ContainerDefinition],
+        family: str,
+        task_role_arn: str,
+        execution_role_arn: str,
+        cpu: str,
+        memory: str,
+        cpu_architecture: str,
+        tags: list[Tag],
+    ) -> "TaskDefinition":
+        return TaskDefinition(
+            taskDefinitionArn=None,
+            containerDefinitions=container_definitions,
+            family=family,
+            taskRoleArn=task_role_arn,
+            executionRoleArn=execution_role_arn,
+            networkMode="awsvpc",
+            revision=None,
+            volumes=[],
+            status="ACTIVE",
+            requiresAttributes=None,
+            compatibilities=[],
+            placementConstraints=[],
+            requiresCompatibilities=["FARGATE"],
+            cpu=cpu,
+            memory=memory,
+            runtimePlatform=RuntimePlatform(cpuArchitecture=cpu_architecture),
+            enableFaultInjection=False,
+            tags=tags,
+        )
 
     def get_container_definition_by_name(self, name: str) -> ContainerDefinition | None:
         for c in self.container_definitions:
@@ -156,3 +189,14 @@ class TaskDefinition(BaseModel):
         memory: {self.memory}
         cpu_architecture: {self.runtime_platform.cpu_architecture}
         """
+
+    def export(self) -> dict:
+        return self.model_dump(
+            by_alias=True,
+            exclude={
+                "task_definition_arn",
+                "requires_attributes",
+                "compatibilities",
+                "revision",
+            },
+        )
