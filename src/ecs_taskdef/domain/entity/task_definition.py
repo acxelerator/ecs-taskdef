@@ -76,8 +76,8 @@ class ContainerDefinition(BaseModel):
         memory_reservation: int,
         environment: list[EnvironmentVariable],
         port_mappings: list[PortMapping],
-        essential: bool,
         log_configuration: LogConfiguration,
+        essential: bool = True,
     ) -> "ContainerDefinition":
         return ContainerDefinition(
             name=name,
