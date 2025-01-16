@@ -1,112 +1,14 @@
 from pydantic import BaseModel, Field
+from .container_definition import ContainerDefinition
 from .environment_variable import EnvironmentVariable
 from typing import Literal, Optional
 
-
-class ULimit(BaseModel):
-    name: str
-    soft_limit: int = Field(alias="softLimit")
-    hard_limit: int = Field(alias="hardLimit")
-
-
-class PortMapping(BaseModel):
-    container_port: int = Field(alias="containerPort")
-    host_port: int = Field(alias="hostPort")
-    protocol: str
-
-
-class LogConfigurationOptions(BaseModel):
-    awslogs_group: str = Field(alias="awslogs-group")
-    awslogs_region: str = Field(alias="awslogs-region")
-    awslogs_stream_prefix: str = Field(alias="awslogs-stream-prefix")
-
-
-class LogConfiguration(BaseModel):
-    log_driver: str = Field(alias="logDriver")
-    options: LogConfigurationOptions = Field(alias="options")
-    secret_options: list = Field(alias="secretOptions")
-
-    @staticmethod
-    def generate(
-        group_name: str, stream_prefix: str, region: str = "ap-northeast-1"
-    ) -> "LogConfiguration":
-        options = LogConfigurationOptions(
-            **{
-                "awslogs-group": group_name,
-                "awslogs-region": region,
-                "awslogs-stream-prefix": stream_prefix,
-            }
-        )
-        return LogConfiguration(
-            logDriver="awslogs",
-            options=options,
-            secretOptions=[],
-        )
-
-
-class ContainerDefinition(BaseModel):
-    name: str = Field(alias="name")
-    image: str = Field(alias="image")
-    cpu: int = Field(alias="cpu")
-    memory_reservation: int = Field(alias="memoryReservation")
-    links: list = Field(alias="links")
-    port_mappings: list = Field(alias="portMappings")
-    essential: bool = Field(alias="essential")
-    entry_point: list = Field(alias="entryPoint")
-    command: list[str] = Field(alias="command")
-    environment: list[EnvironmentVariable] = Field(alias="environment")
-    environment_files: list = Field(alias="environmentFiles")
-    mount_points: list = Field(alias="mountPoints")
-    volumes_from: list = Field(alias="volumesFrom")
-    secrets: list = Field(alias="secrets")
-    dns_servers: list = Field(alias="dnsServers")
-    dns_search_domains: list = Field(alias="dnsSearchDomains")
-    extra_hosts: list = Field(alias="extraHosts")
-    docker_security_options: list = Field(alias="dockerSecurityOptions")
-    docker_labels: dict = Field(alias="dockerLabels")
-    u_limits: list[ULimit] = Field(alias="ulimits")
-    log_configuration: LogConfiguration = Field(alias="logConfiguration")
-    system_controls: list = Field(alias="systemControls")
-
-    @staticmethod
-    def generate(
-        name: str,
-        image: str,
-        cpu: int,
-        memory_reservation: int,
-        environment: list[EnvironmentVariable],
-        port_mappings: list[PortMapping],
-        log_configuration: LogConfiguration,
-        essential: bool = True,
-    ) -> "ContainerDefinition":
-        return ContainerDefinition(
-            name=name,
-            image=image,
-            cpu=cpu,
-            memoryReservation=memory_reservation,
-            links=[],
-            portMappings=port_mappings,
-            essential=essential,
-            entryPoint=[],
-            command=[],
-            environment=environment,
-            environmentFiles=[],
-            mountPoints=[],
-            volumesFrom=[],
-            secrets=[],
-            dnsServers=[],
-            dnsSearchDomains=[],
-            extraHosts=[],
-            dockerSecurityOptions=[],
-            dockerLabels={},
-            ulimits=[],
-            logConfiguration=log_configuration,
-            systemControls=[],
-        )
+NETWORK_MODE = Literal["none", "bridge", "awsvpc", "host"]
+CPU_ARCHITECTURE = Literal["X86_64", "ARM64"]
 
 
 class RuntimePlatform(BaseModel):
-    cpu_architecture: str = Field(alias="cpuArchitecture")
+    cpu_architecture: CPU_ARCHITECTURE = Field(alias="cpuArchitecture")
 
 
 class Tag(BaseModel):
@@ -122,7 +24,7 @@ class TaskDefinition(BaseModel):
     family: str = Field(alias="family")
     task_role_arn: str = Field(alias="taskRoleArn")
     execution_role_arn: str = Field(alias="executionRoleArn")
-    network_mode: str = Field(alias="networkMode")
+    network_mode: NETWORK_MODE = Field(alias="networkMode")
     revision: Optional[int] = Field(alias="revision")
     volumes: list = Field(alias="volumes")
     status: Literal["ACTIVE", "INACTIVE"] = Field(alias="status")
@@ -144,8 +46,9 @@ class TaskDefinition(BaseModel):
         execution_role_arn: str,
         cpu: str,
         memory: str,
-        cpu_architecture: str,
+        cpu_architecture: CPU_ARCHITECTURE,
         tags: list[Tag],
+        network_mode: NETWORK_MODE = "awsvpc",
     ) -> "TaskDefinition":
         return TaskDefinition(
             taskDefinitionArn=None,
@@ -153,7 +56,7 @@ class TaskDefinition(BaseModel):
             family=family,
             taskRoleArn=task_role_arn,
             executionRoleArn=execution_role_arn,
-            networkMode="awsvpc",
+            networkMode=network_mode,
             revision=None,
             volumes=[],
             status="ACTIVE",
