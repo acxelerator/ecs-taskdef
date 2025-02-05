@@ -113,10 +113,14 @@ class ContainerDefinition(BaseModel):
         log_configuration: LogConfiguration,
         essential: bool = True,
         mount_points: list[MountPoint] | None = None,
+        u_limits: list[ULimit] | None = None,
     ) -> "ContainerDefinition":
         _mount_points = mount_points
         if _mount_points is None:
             _mount_points = []
+        _u_limits = u_limits
+        if _u_limits is None:
+            _u_limits = []
         return ContainerDefinition(
             name=name,
             image=image,
@@ -131,6 +135,7 @@ class ContainerDefinition(BaseModel):
             dnsSearchDomains=[],
             extraHosts=[],
             dockerSecurityOptions=[],
+            ulimits=_u_limits,
             logConfiguration=log_configuration,
             systemControls=[],
         )
