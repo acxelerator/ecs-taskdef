@@ -34,6 +34,12 @@ class PortMapping(BaseModel):
     protocol: Optional[PROTOCOL]
 
 
+class MountPoint(BaseModel):
+    source_volume: str = Field(alias="sourceVolume")
+    container_path: str = Field(alias="containerPath")
+    read_only: bool | None = Field(alias="readOnly")
+
+
 class LogConfigurationOptions(BaseModel):
     awslogs_group: str = Field(alias="awslogs-group")
     awslogs_region: str = Field(alias="awslogs-region")
@@ -106,7 +112,11 @@ class ContainerDefinition(BaseModel):
         port_mappings: list[PortMapping],
         log_configuration: LogConfiguration,
         essential: bool = True,
+        mount_points: list[MountPoint] | None = None,
     ) -> "ContainerDefinition":
+        _mount_points = mount_points
+        if _mount_points is None:
+            _mount_points = []
         return ContainerDefinition(
             name=name,
             image=image,
@@ -116,6 +126,7 @@ class ContainerDefinition(BaseModel):
             essential=essential,
             environment=environment,
             environmentFiles=[],
+            mountPoints=_mount_points,
             dnsServers=[],
             dnsSearchDomains=[],
             extraHosts=[],
