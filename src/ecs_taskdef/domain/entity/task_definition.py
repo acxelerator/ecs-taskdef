@@ -16,6 +16,19 @@ class Tag(BaseModel):
     value: str
 
 
+class VolumesHost(BaseModel):
+    source_path: str = Field(alias="sourcePath")
+
+
+class Volumes(BaseModel):
+    name: str
+    host: VolumesHost
+
+    @staticmethod
+    def generate_host(name: str, source_path: str):
+        return Volumes(name=name, host=VolumesHost(sourcePath=source_path))
+
+
 class TaskDefinition(BaseModel):
     task_definition_arn: Optional[str] = Field(alias="taskDefinitionArn")
     container_definitions: list[ContainerDefinition] = Field(
@@ -48,8 +61,12 @@ class TaskDefinition(BaseModel):
         memory: str,
         cpu_architecture: CPU_ARCHITECTURE,
         tags: list[Tag],
+        volumes: list[Volumes] | None = None,
         network_mode: NETWORK_MODE = "awsvpc",
     ) -> "TaskDefinition":
+        _volumes = volumes
+        if _volumes is None:
+            _volumes = []
         return TaskDefinition(
             taskDefinitionArn=None,
             containerDefinitions=container_definitions,
@@ -58,7 +75,7 @@ class TaskDefinition(BaseModel):
             executionRoleArn=execution_role_arn,
             networkMode=network_mode,
             revision=None,
-            volumes=[],
+            volumes=_volumes,
             status="ACTIVE",
             requiresAttributes=None,
             compatibilities=[],
