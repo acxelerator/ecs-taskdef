@@ -46,6 +46,16 @@ class LogConfigurationOptions(BaseModel):
     awslogs_stream_prefix: str = Field(alias="awslogs-stream-prefix")
 
 
+class DependsOn(BaseModel):
+    condition: Literal["START", "COMPLETE", "SUCCESS", "HEALTHY"]
+    container_name: str = Field(alias="containerName")
+
+
+class VolumesFrom(BaseModel):
+    read_only: bool = Field(alias="readOnly")
+    source_container: str = Field(alias="sourceContainer")
+
+
 class LogConfiguration(BaseModel):
     log_driver: str = Field(alias="logDriver")
     options: LogConfigurationOptions = Field(alias="options")
@@ -98,6 +108,7 @@ class ContainerDefinition(BaseModel):
     docker_labels: Optional[dict[str, str]] = Field(
         alias="dockerLabels", default_factory=dict
     )
+    depends_on: Optional[list[DependsOn]] = Field(alias="dependsOn")
     u_limits: Optional[list[ULimit]] = Field(alias="ulimits", default_factory=list)
     log_configuration: LogConfiguration = Field(alias="logConfiguration")
     system_controls: list = Field(alias="systemControls")
@@ -112,6 +123,8 @@ class ContainerDefinition(BaseModel):
         port_mappings: list[PortMapping],
         log_configuration: LogConfiguration,
         essential: bool = True,
+        depends_on: list[DependsOn] | None = None,
+        volumes_from: list[VolumesFrom] | None = None,
         mount_points: list[MountPoint] | None = None,
         u_limits: list[ULimit] | None = None,
     ) -> "ContainerDefinition":
@@ -121,6 +134,12 @@ class ContainerDefinition(BaseModel):
         _u_limits = u_limits
         if _u_limits is None:
             _u_limits = []
+        _depends_on = depends_on
+        if _depends_on is None:
+            _depends_on = []
+        _volumes_from = volumes_from
+        if _volumes_from is None:
+            _volumes_from = []
         return ContainerDefinition(
             name=name,
             image=image,
@@ -131,10 +150,12 @@ class ContainerDefinition(BaseModel):
             environment=environment,
             environmentFiles=[],
             mountPoints=_mount_points,
+            volumesFrom=_volumes_from,
             dnsServers=[],
             dnsSearchDomains=[],
             extraHosts=[],
             dockerSecurityOptions=[],
+            dependsOn=_depends_on,
             ulimits=_u_limits,
             logConfiguration=log_configuration,
             systemControls=[],
