@@ -66,3 +66,21 @@ if __name__ == "__main__":
     main()
 ```
 
+# Development
+
+## Testing
+
+The project uses pytest for testing. Run the tests locally with:
+
+```shell
+python -m pytest
+```
+
+For test coverage information:
+
+```shell
+python -m pytest --cov=ecs_taskdef
+```
+
+Tests are automatically run on GitHub Actions for all push and pull request events on the main branch.
+
