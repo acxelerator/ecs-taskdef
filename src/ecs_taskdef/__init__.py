@@ -1,5 +1,5 @@
 from ecs_taskdef.domain.entity import (
-    TaskDefinition,
-    EnvironmentVariable,
     ContainerDefinition,
+    EnvironmentVariable,
+    TaskDefinition,
 )

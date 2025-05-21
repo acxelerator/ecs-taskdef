@@ -1,20 +1,15 @@
 import pytest
 from pydantic import ValidationError
-from ecs_taskdef.domain.entity.task_definition import (
-    TaskDefinition,
-    Volumes,
-    VolumesHost,
-    Tag,
-    RuntimePlatform
-)
+
 from ecs_taskdef.domain.entity.container_definition import (
     ContainerDefinition,
+    DependsOn,
     LogConfiguration,
     LogConfigurationOptions,
     PortMapping,
-    DependsOn
 )
 from ecs_taskdef.domain.entity.environment_variable import EnvironmentVariable
+from ecs_taskdef.domain.entity.task_definition import RuntimePlatform, Tag, TaskDefinition, Volumes, VolumesHost
 
 
 def test_volumes_host_validation():
@@ -22,7 +17,7 @@ def test_volumes_host_validation():
     # Valid data
     host_vol = VolumesHost(sourcePath="/ecs/data")
     assert host_vol.source_path == "/ecs/data"
-    
+
     # Serialization with aliases
     host_dict = host_vol.model_dump(by_alias=True)
     assert host_dict["sourcePath"] == "/ecs/data"
@@ -35,12 +30,12 @@ def test_volumes_validation():
     volume = Volumes(name="host-vol", host=host_vol)
     assert volume.name == "host-vol"
     assert volume.host.source_path == "/ecs/data"
-    
+
     # Test static generate method
     generated = Volumes.generate_host(name="data-vol", source_path="/data")
     assert generated.name == "data-vol"
     assert generated.host.source_path == "/data"
-    
+
     # Test serialization with aliases
     vol_dict = volume.model_dump(by_alias=True)
     assert vol_dict["name"] == "host-vol"
@@ -52,11 +47,11 @@ def test_tag_validation():
     tag = Tag(key="Environment", value="Production")
     assert tag.key == "Environment"
     assert tag.value == "Production"
-    
+
     # Missing required fields
     with pytest.raises(ValidationError) as exc_info:
         Tag(key="Environment")  # Missing value
-    
+
     assert "value" in str(exc_info.value)
 
 
@@ -64,11 +59,11 @@ def test_runtime_platform_validation():
     """Test RuntimePlatform validation."""
     platform = RuntimePlatform(cpuArchitecture="X86_64")
     assert platform.cpu_architecture == "X86_64"
-    
+
     # Invalid CPU architecture
     with pytest.raises(ValidationError) as exc_info:
         RuntimePlatform(cpuArchitecture="INVALID")
-    
+
     assert "cpuArchitecture" in str(exc_info.value)
 
 
@@ -77,18 +72,12 @@ def test_task_definition_validation():
     # Create container definitions for task
     env_vars = [EnvironmentVariable(name="ENV1", value="value1")]
     port_mappings = [PortMapping(containerPort=80, hostPort=8080, protocol="tcp")]
-    log_options = LogConfigurationOptions(**{
-        "awslogs-group": "my-group",
-        "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "prefix"
-    })
-    log_config = LogConfiguration(
-        logDriver="awslogs",
-        options=log_options,
-        secretOptions=[]
+    log_options = LogConfigurationOptions(
+        **{"awslogs-group": "my-group", "awslogs-region": "us-east-1", "awslogs-stream-prefix": "prefix"}
     )
+    log_config = LogConfiguration(logDriver="awslogs", options=log_options, secretOptions=[])
     depends_on = [DependsOn(condition="START", containerName="db")]
-    
+
     container = ContainerDefinition(
         name="web",
         image="nginx:latest",
@@ -106,15 +95,15 @@ def test_task_definition_validation():
         dockerSecurityOptions=[],
         dependsOn=depends_on,
         logConfiguration=log_config,
-        systemControls=[]
+        systemControls=[],
     )
-    
+
     # Create a volume for the task
     volume = Volumes.generate_host(name="data-vol", source_path="/data")
-    
+
     # Create tags
     tags = [Tag(key="Environment", value="Production")]
-    
+
     # Valid task definition
     task_def = TaskDefinition(
         family="web-app",
@@ -134,9 +123,9 @@ def test_task_definition_validation():
         compatibilities=None,
         runtimePlatform=RuntimePlatform(cpuArchitecture="X86_64"),
         enableFaultInjection=False,
-        tags=tags
+        tags=tags,
     )
-    
+
     assert task_def.family == "web-app"
     assert len(task_def.container_definitions) == 1
     assert task_def.container_definitions[0].name == "web"
@@ -148,7 +137,7 @@ def test_task_definition_validation():
     assert task_def.execution_role_arn == "arn:aws:iam::123456789012:role/ecsTaskExecutionRole"
     assert task_def.task_role_arn == "arn:aws:iam::123456789012:role/ecsTaskRole"
     assert task_def.requires_compatibilities == ["FARGATE"]
-    
+
     # Test serialization with aliases
     task_dict = task_def.model_dump(by_alias=True)
     assert task_dict["family"] == "web-app"
@@ -166,18 +155,12 @@ def test_task_definition_generate():
     # Create container definitions for task
     env_vars = [EnvironmentVariable(name="ENV1", value="value1")]
     port_mappings = [PortMapping(containerPort=80, hostPort=8080, protocol="tcp")]
-    log_options = LogConfigurationOptions(**{
-        "awslogs-group": "my-group",
-        "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "prefix"
-    })
-    log_config = LogConfiguration(
-        logDriver="awslogs",
-        options=log_options,
-        secretOptions=[]
+    log_options = LogConfigurationOptions(
+        **{"awslogs-group": "my-group", "awslogs-region": "us-east-1", "awslogs-stream-prefix": "prefix"}
     )
+    log_config = LogConfiguration(logDriver="awslogs", options=log_options, secretOptions=[])
     depends_on = [DependsOn(condition="START", containerName="db")]
-    
+
     container = ContainerDefinition(
         name="web",
         image="nginx:latest",
@@ -195,15 +178,15 @@ def test_task_definition_generate():
         dockerSecurityOptions=[],
         dependsOn=depends_on,
         logConfiguration=log_config,
-        systemControls=[]
+        systemControls=[],
     )
-    
+
     # Create volumes for the task
     volume = Volumes.generate_host(name="data-vol", source_path="/data")
-    
+
     # Create tags
     tags = [Tag(key="Environment", value="Production")]
-    
+
     # Generate a task definition
     task_def = TaskDefinition.generate(
         container_definitions=[container],
@@ -215,9 +198,9 @@ def test_task_definition_generate():
         cpu_architecture="X86_64",
         tags=tags,
         volumes=[volume],
-        network_mode="awsvpc"
+        network_mode="awsvpc",
     )
-    
+
     # Verify generated task definition
     assert task_def.family == "web-app"
     assert len(task_def.container_definitions) == 1
@@ -239,7 +222,7 @@ def test_task_definition_network_mode_validation():
     for mode in ["bridge", "host", "awsvpc", "none"]:
         platform = RuntimePlatform(cpuArchitecture="X86_64")
         tags = [Tag(key="Environment", value="Production")]
-        
+
         task_def = TaskDefinition(
             family="app",
             containerDefinitions=[],
@@ -258,15 +241,15 @@ def test_task_definition_network_mode_validation():
             executionRoleArn="arn:aws:iam::123456789012:role/role",
             runtimePlatform=platform,
             enableFaultInjection=False,
-            tags=tags
+            tags=tags,
         )
         assert task_def.network_mode == mode
-    
+
     # Invalid network mode
     with pytest.raises(ValidationError) as exc_info:
         platform = RuntimePlatform(cpuArchitecture="X86_64")
         tags = [Tag(key="Environment", value="Production")]
-        
+
         TaskDefinition(
             family="app",
             containerDefinitions=[],
@@ -285,9 +268,9 @@ def test_task_definition_network_mode_validation():
             executionRoleArn="arn:aws:iam::123456789012:role/role",
             runtimePlatform=platform,
             enableFaultInjection=False,
-            tags=tags
+            tags=tags,
         )
-    
+
     assert "networkMode" in str(exc_info.value)
 
 
@@ -296,7 +279,7 @@ def test_task_definition_export():
     # Create minimal task definition for export testing
     platform = RuntimePlatform(cpuArchitecture="X86_64")
     tags = [Tag(key="Environment", value="Production")]
-    
+
     task_def = TaskDefinition(
         taskDefinitionArn="arn:aws:ecs:us-east-1:123456789012:task-definition/app:1",
         family="app",
@@ -315,18 +298,18 @@ def test_task_definition_export():
         executionRoleArn="arn:aws:iam::123456789012:role/role",
         runtimePlatform=platform,
         enableFaultInjection=False,
-        tags=tags
+        tags=tags,
     )
-    
+
     # Export to dictionary
     export_dict = task_def.export()
-    
+
     # Verify excluded fields are not present
     assert "taskDefinitionArn" not in export_dict
     assert "revision" not in export_dict
     assert "requiresAttributes" not in export_dict
     assert "compatibilities" not in export_dict
-    
+
     # Verify required fields are present
     assert "family" in export_dict
     assert "networkMode" in export_dict
@@ -338,18 +321,18 @@ def test_cpu_memory_combination_validation():
     """Test validation of CPU and memory combinations."""
     platform = RuntimePlatform(cpuArchitecture="X86_64")
     tags = [Tag(key="Environment", value="Production")]
-    
+
     # Test valid combinations
     valid_combinations = [
-        ("256", "512"),    # 0.25 vCPU - 512MB
-        ("512", "1024"),   # 0.5 vCPU - 1GB
+        ("256", "512"),  # 0.25 vCPU - 512MB
+        ("512", "1024"),  # 0.5 vCPU - 1GB
         ("1024", "2048"),  # 1 vCPU - 2GB
         ("2048", "4096"),  # 2 vCPU - 4GB
         ("4096", "8192"),  # 4 vCPU - 8GB
-        ("8192", "16384"), # 8 vCPU - 16GB
-        ("16384", "32768") # 16 vCPU - 32GB
+        ("8192", "16384"),  # 8 vCPU - 16GB
+        ("16384", "32768"),  # 16 vCPU - 32GB
     ]
-    
+
     for cpu, memory in valid_combinations:
         task_def = TaskDefinition(
             family="app",
@@ -369,20 +352,20 @@ def test_cpu_memory_combination_validation():
             executionRoleArn="arn:aws:iam::123456789012:role/role",
             runtimePlatform=platform,
             enableFaultInjection=False,
-            tags=tags
+            tags=tags,
         )
         assert task_def.cpu == cpu
         assert task_def.memory == memory
 
     # Test invalid combinations
     invalid_combinations = [
-        ("256", "8192"),    # 0.25 vCPU with 8GB (too much memory)
-        ("512", "16384"),   # 0.5 vCPU with 16GB (too much memory)
+        ("256", "8192"),  # 0.25 vCPU with 8GB (too much memory)
+        ("512", "16384"),  # 0.5 vCPU with 16GB (too much memory)
         ("1024", "30720"),  # 1 vCPU with 30GB (too much memory)
         ("2048", "32768"),  # 2 vCPU with 32GB (too much memory)
         ("4096", "61440"),  # 4 vCPU with 60GB (too much memory)
     ]
-    
+
     for cpu, memory in invalid_combinations:
         with pytest.raises(ValidationError) as exc_info:
             TaskDefinition(
@@ -403,9 +386,9 @@ def test_cpu_memory_combination_validation():
                 executionRoleArn="arn:aws:iam::123456789012:role/role",
                 runtimePlatform=platform,
                 enableFaultInjection=False,
-                tags=tags
+                tags=tags,
             )
-        
+
         # Check that the error message mentions CPU and memory
         error_message = str(exc_info.value)
         assert "CPU" in error_message
