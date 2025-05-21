@@ -332,3 +332,81 @@ def test_task_definition_export():
     assert "networkMode" in export_dict
     assert "cpu" in export_dict
     assert "memory" in export_dict
+
+
+def test_cpu_memory_combination_validation():
+    """Test validation of CPU and memory combinations."""
+    platform = RuntimePlatform(cpuArchitecture="X86_64")
+    tags = [Tag(key="Environment", value="Production")]
+    
+    # Test valid combinations
+    valid_combinations = [
+        ("256", "512"),    # 0.25 vCPU - 512MB
+        ("512", "1024"),   # 0.5 vCPU - 1GB
+        ("1024", "2048"),  # 1 vCPU - 2GB
+        ("2048", "4096"),  # 2 vCPU - 4GB
+        ("4096", "8192"),  # 4 vCPU - 8GB
+        ("8192", "16384"), # 8 vCPU - 16GB
+        ("16384", "32768") # 16 vCPU - 32GB
+    ]
+    
+    for cpu, memory in valid_combinations:
+        task_def = TaskDefinition(
+            family="app",
+            containerDefinitions=[],
+            volumes=[],
+            networkMode="awsvpc",
+            taskDefinitionArn=None,
+            revision=None,
+            status="ACTIVE",
+            requiresAttributes=None,
+            placementConstraints=[],
+            compatibilities=None,
+            requiresCompatibilities=["FARGATE"],
+            cpu=cpu,
+            memory=memory,
+            taskRoleArn="arn:aws:iam::123456789012:role/role",
+            executionRoleArn="arn:aws:iam::123456789012:role/role",
+            runtimePlatform=platform,
+            enableFaultInjection=False,
+            tags=tags
+        )
+        assert task_def.cpu == cpu
+        assert task_def.memory == memory
+
+    # Test invalid combinations
+    invalid_combinations = [
+        ("256", "8192"),    # 0.25 vCPU with 8GB (too much memory)
+        ("512", "16384"),   # 0.5 vCPU with 16GB (too much memory)
+        ("1024", "30720"),  # 1 vCPU with 30GB (too much memory)
+        ("2048", "32768"),  # 2 vCPU with 32GB (too much memory)
+        ("4096", "61440"),  # 4 vCPU with 60GB (too much memory)
+    ]
+    
+    for cpu, memory in invalid_combinations:
+        with pytest.raises(ValidationError) as exc_info:
+            TaskDefinition(
+                family="app",
+                containerDefinitions=[],
+                volumes=[],
+                networkMode="awsvpc",
+                taskDefinitionArn=None,
+                revision=None,
+                status="ACTIVE",
+                requiresAttributes=None,
+                placementConstraints=[],
+                compatibilities=None,
+                requiresCompatibilities=["FARGATE"],
+                cpu=cpu,
+                memory=memory,
+                taskRoleArn="arn:aws:iam::123456789012:role/role",
+                executionRoleArn="arn:aws:iam::123456789012:role/role",
+                runtimePlatform=platform,
+                enableFaultInjection=False,
+                tags=tags
+            )
+        
+        # Check that the error message mentions CPU and memory
+        error_message = str(exc_info.value)
+        assert "CPU" in error_message
+        assert "memory" in error_message or "Memory" in error_message

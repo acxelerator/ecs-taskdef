@@ -1,10 +1,34 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from .container_definition import ContainerDefinition
 from .environment_variable import EnvironmentVariable
-from typing import Literal, Optional
+from typing import Literal, Optional, Dict, List, ClassVar
 
 NETWORK_MODE = Literal["none", "bridge", "awsvpc", "host"]
 CPU_ARCHITECTURE = Literal["X86_64", "ARM64"]
+
+# Valid CPU and memory combinations for Fargate tasks
+# Based on AWS documentation
+CPU_MEMORY_COMBINATIONS = {
+    "256": ["512", "1024", "2048"],  # 0.25 vCPU
+    "512": ["1024", "2048", "3072", "4096"],  # 0.5 vCPU
+    "1024": ["2048", "3072", "4096", "5120", "6144", "7168", "8192"],  # 1 vCPU
+    "2048": [  # 2 vCPU
+        "4096", "5120", "6144", "7168", "8192",
+        "9216", "10240", "11264", "12288", "13312", "14336", "15360", "16384"
+    ],
+    "4096": [  # 4 vCPU
+        "8192", "9216", "10240", "11264", "12288",
+        "13312", "14336", "15360", "16384", "17408", "18432", "19456", "20480",
+        "21504", "22528", "23552", "24576", "25600", "26624", "27648", "28672",
+        "29696", "30720"
+    ]
+}
+
+# Extend the list for 8 vCPU (16GB-60GB in 1GB increments)
+CPU_MEMORY_COMBINATIONS["8192"] = [str(i * 1024) for i in range(16, 61)]
+
+# Extend the list for 16 vCPU (32GB-120GB in 1GB increments)
+CPU_MEMORY_COMBINATIONS["16384"] = [str(i * 1024) for i in range(32, 121)]
 
 
 class RuntimePlatform(BaseModel):
@@ -50,6 +74,29 @@ class TaskDefinition(BaseModel):
     runtime_platform: RuntimePlatform = Field(alias="runtimePlatform")
     enable_fault_injection: bool = Field(alias="enableFaultInjection")
     tags: list[Tag]
+
+    # Validator for CPU and memory combinations
+    @field_validator('memory')
+    def validate_cpu_memory_combination(cls, memory_value, info):
+        cpu_value = info.data.get('cpu')
+        # Skip validation if CPU is not provided
+        if not cpu_value:
+            return memory_value
+        
+        # Check if CPU is in the valid CPU list
+        if cpu_value not in CPU_MEMORY_COMBINATIONS:
+            valid_cpus = list(CPU_MEMORY_COMBINATIONS.keys())
+            raise ValueError(f"Invalid CPU value: {cpu_value}. Must be one of {valid_cpus}")
+            
+        # Check if memory is a valid combination with the CPU
+        valid_memories = CPU_MEMORY_COMBINATIONS[cpu_value]
+        if memory_value not in valid_memories:
+            raise ValueError(
+                f"Invalid CPU and memory combination. "
+                f"For CPU {cpu_value}, valid memory values are: {valid_memories}"
+            )
+            
+        return memory_value
 
     @staticmethod
     def generate(
