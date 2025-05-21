@@ -1,16 +1,16 @@
 ---
-name: Documentation improvement
-about: Suggest improvements to the documentation
+name: ドキュメント改善
+about: ドキュメントの改善を提案する
 title: "[DOCS] "
 labels: documentation
-assignees: ''
+assignees: 'copilot'
 ---
 
-## Documentation Issue
-<!-- Describe what's wrong or missing in the current documentation -->
+## ドキュメントの問題
+<!-- 現在のドキュメントで何が間違っているか、または不足しているかを説明してください -->
 
-## Suggested Improvement
-<!-- Describe how you think the documentation should be improved -->
+## 改善案
+<!-- ドキュメントをどのように改善すべきかを説明してください -->
 
-## Additional Context
-<!-- Add any other context about the documentation improvement here, such as screenshots or examples -->
+## 追加情報
+<!-- スクリーンショットや例など、ドキュメント改善に関するその他の情報をここに追加してください -->

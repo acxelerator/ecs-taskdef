@@ -1,42 +1,42 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: バグ報告
+about: 改善のためのバグ報告を作成する
 title: "[BUG] "
 labels: bug
-assignees: ''
+assignees: 'copilot'
 ---
 
-## Bug Description
-<!-- A clear and concise description of what the bug is. -->
+## バグの説明
+<!-- バグの内容を明確かつ簡潔に説明してください -->
 
-## Reproduction Steps
-<!-- Steps to reproduce the behavior, include code snippets if possible: -->
+## 再現手順
+<!-- 動作を再現するための手順（可能であればコードスニペットを含む）: -->
 
 1. 
 2. 
 3. 
 
-## Expected Behavior
-<!-- A clear and concise description of what you expected to happen. -->
+## 期待される動作
+<!-- 期待される動作を明確かつ簡潔に説明してください -->
 
-## Actual Behavior
-<!-- A clear and concise description of what actually happens. -->
+## 実際の動作
+<!-- 実際に発生している動作を明確かつ簡潔に説明してください -->
 
-## Environment Information
-<!-- Please provide the following information: -->
+## 環境情報
+<!-- 以下の情報を提供してください: -->
 
-- Python version: <!-- e.g., 3.12 -->
-- ecs-taskdef version: <!-- e.g., 0.1.0 -->
-- OS: <!-- e.g., Ubuntu 22.04, macOS 13, etc. -->
+- Python バージョン: <!-- 例: 3.12 -->
+- ecs-taskdef バージョン: <!-- 例: 0.1.0 -->
+- OS: <!-- 例: Ubuntu 22.04, macOS 13, など -->
 
-## Relevant Task Definition or Configuration
-<!-- Please include any relevant task definition or configuration (with sensitive information redacted) -->
+## 関連するタスク定義または設定
+<!-- 関連するタスク定義または設定を含めてください（機密情報は編集してください） -->
 
 ```json
 {
-  // Your task definition here
+  // タスク定義をここに記述
 }
 ```
 
-## Additional Context
-<!-- Add any other context about the problem here. -->
+## 追加情報
+<!-- 問題に関するその他の情報をここに追加してください -->

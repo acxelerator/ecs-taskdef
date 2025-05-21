@@ -1,28 +1,28 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
+name: 機能リクエスト
+about: このプロジェクトのアイデアを提案する
 title: "[FEATURE] "
 labels: enhancement
-assignees: ''
+assignees: 'copilot'
 ---
 
-## Problem Statement
-<!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
+## 問題の説明
+<!-- 問題の明確かつ簡潔な説明。例: 私はいつも [...]のときに困っています -->
 
-## Proposed Solution
-<!-- A clear and concise description of what you want to happen. -->
+## 提案する解決策
+<!-- 実現したいことの明確かつ簡潔な説明 -->
 
-## Alternative Solutions
-<!-- A clear and concise description of any alternative solutions or features you've considered. -->
+## 代替案
+<!-- 検討した代替案や機能の明確かつ簡潔な説明 -->
 
-## Example Usage
-<!-- If applicable, add code examples to help explain your feature request. -->
+## 使用例
+<!-- 該当する場合、機能リクエストの説明に役立つコード例を追加してください -->
 
 ```python
 from ecs_taskdef import ...
 
-# Example of how the proposed feature would be used
+# 提案された機能の使用例
 ```
 
-## Additional Context
-<!-- Add any other context or screenshots about the feature request here. -->
+## 追加情報
+<!-- 機能リクエストに関するその他の情報やスクリーンショットをここに追加してください -->
