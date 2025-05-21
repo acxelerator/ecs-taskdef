@@ -84,3 +84,33 @@ python -m pytest --cov=ecs_taskdef
 
 Tests are automatically run on GitHub Actions for all push and pull request events on the main branch.
 
+## Code Quality
+
+This project uses [Ruff](https://github.com/astral-sh/ruff) for code formatting and linting.
+
+To check your code for linting issues:
+
+```shell
+ruff check .
+```
+
+To automatically fix linting issues where possible:
+
+```shell
+ruff check --fix .
+```
+
+To check code formatting:
+
+```shell
+ruff format --check .
+```
+
+To automatically format code:
+
+```shell
+ruff format .
+```
+
+Both linting and formatting checks are automatically run on GitHub Actions for all push and pull request events on the main branch. The workflow will fail if formatting issues are detected.
+

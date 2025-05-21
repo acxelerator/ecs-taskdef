@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
-from .environment_variable import EnvironmentVariable
 from typing import Literal, Optional
+
+from pydantic import BaseModel, Field
+
+from .environment_variable import EnvironmentVariable
 
 ULIMIT_NAME = Literal[
     "core",
@@ -62,9 +64,7 @@ class LogConfiguration(BaseModel):
     secret_options: list = Field(alias="secretOptions")
 
     @staticmethod
-    def generate(
-        group_name: str, stream_prefix: str, region: str = "ap-northeast-1"
-    ) -> "LogConfiguration":
+    def generate(group_name: str, stream_prefix: str, region: str = "ap-northeast-1") -> "LogConfiguration":
         options = LogConfigurationOptions(
             **{
                 "awslogs-group": group_name,
@@ -94,9 +94,7 @@ class ContainerDefinition(BaseModel):
     essential: Optional[bool] = Field(alias="essential")
     entry_point: Optional[list[str]] = Field(alias="entryPoint", default_factory=list)
     command: Optional[list[str]] = Field(alias="command", default_factory=list)
-    environment: Optional[list[EnvironmentVariable]] = Field(
-        alias="environment", default_factory=list
-    )
+    environment: Optional[list[EnvironmentVariable]] = Field(alias="environment", default_factory=list)
     environment_files: list = Field(alias="environmentFiles")
     mount_points: Optional[list] = Field(alias="mountPoints", default_factory=list)
     volumes_from: Optional[list] = Field(alias="volumesFrom", default_factory=list)
@@ -105,9 +103,7 @@ class ContainerDefinition(BaseModel):
     dns_search_domains: list = Field(alias="dnsSearchDomains")
     extra_hosts: list = Field(alias="extraHosts")
     docker_security_options: list = Field(alias="dockerSecurityOptions")
-    docker_labels: Optional[dict[str, str]] = Field(
-        alias="dockerLabels", default_factory=dict
-    )
+    docker_labels: Optional[dict[str, str]] = Field(alias="dockerLabels", default_factory=dict)
     depends_on: Optional[list[DependsOn]] = Field(alias="dependsOn")
     u_limits: Optional[list[ULimit]] = Field(alias="ulimits", default_factory=list)
     log_configuration: LogConfiguration = Field(alias="logConfiguration")
