@@ -1,7 +1,7 @@
 ---
-name: 機能リクエスト
-about: このプロジェクトのアイデアを提案する
-title: "[FEATURE] "
+name: リクエスト
+about: このプロジェクトに「機能」を追加する
+title: "[FEATURE]"
 labels: enhancement
 assignees: 'copilot'
 ---
