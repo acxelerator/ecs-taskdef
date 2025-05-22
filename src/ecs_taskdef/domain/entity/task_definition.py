@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -6,6 +7,9 @@ from .container_definition import ContainerDefinition
 
 NETWORK_MODE = Literal["none", "bridge", "awsvpc", "host"]
 CPU_ARCHITECTURE = Literal["X86_64", "ARM64"]
+IPC_MODE = Literal["host", "task", "none"]
+PID_MODE = Literal["host", "task"]
+PROXY_TYPE = Literal["APPMESH"]
 
 # Valid CPU and memory combinations for Fargate tasks
 # Based on AWS documentation
@@ -84,6 +88,26 @@ class Volumes(BaseModel):
         return Volumes(name=name, host=VolumesHost(sourcePath=source_path))
 
 
+class InferenceAccelerator(BaseModel):
+    device_name: str = Field(alias="deviceName")
+    device_type: str = Field(alias="deviceType")
+
+
+class EphemeralStorage(BaseModel):
+    size_in_gi_b: int = Field(alias="sizeInGiB")
+
+
+class KeyValuePair(BaseModel):
+    name: str
+    value: str
+
+
+class ProxyConfiguration(BaseModel):
+    type: PROXY_TYPE
+    container_name: str = Field(alias="containerName")
+    properties: list[KeyValuePair] = Field(default_factory=list)
+
+
 class TaskDefinition(BaseModel):
     task_definition_arn: Optional[str] = Field(alias="taskDefinitionArn")
     container_definitions: list[ContainerDefinition] = Field(alias="containerDefinitions")
@@ -103,10 +127,21 @@ class TaskDefinition(BaseModel):
     runtime_platform: RuntimePlatform = Field(alias="runtimePlatform")
     enable_fault_injection: bool = Field(alias="enableFaultInjection")
     tags: list[Tag]
+    ipc_mode: Optional[IPC_MODE] = Field(alias="ipcMode", default=None)
+    pid_mode: Optional[PID_MODE] = Field(alias="pidMode", default=None)
+    proxy_configuration: Optional[ProxyConfiguration] = Field(alias="proxyConfiguration", default=None)
+    inference_accelerators: Optional[list[InferenceAccelerator]] = Field(
+        alias="inferenceAccelerators", default_factory=list
+    )
+    ephemeral_storage: Optional[EphemeralStorage] = Field(alias="ephemeralStorage", default=None)
+    registered_at: Optional[datetime] = Field(alias="registeredAt", default=None)
+    registered_by: Optional[str] = Field(alias="registeredBy", default=None)
+    deregistered_at: Optional[datetime] = Field(alias="deregisteredAt", default=None)
 
     # Validator for CPU and memory combinations
     @field_validator("memory")
-    def validate_cpu_memory_combination(cls, memory_value, info):
+    @classmethod
+    def validate_cpu_memory_combination(cls, memory_value: str, info):
         cpu_value = info.data.get("cpu")
         # Skip validation if CPU is not provided
         if not cpu_value:
@@ -138,10 +173,18 @@ class TaskDefinition(BaseModel):
         tags: list[Tag],
         volumes: list[Volumes] | None = None,
         network_mode: NETWORK_MODE = "awsvpc",
+        ipc_mode: Optional[IPC_MODE] = None,
+        pid_mode: Optional[PID_MODE] = None,
+        proxy_configuration: Optional[ProxyConfiguration] = None,
+        inference_accelerators: Optional[list[InferenceAccelerator]] = None,
+        ephemeral_storage: Optional[EphemeralStorage] = None,
     ) -> "TaskDefinition":
         _volumes = volumes
         if _volumes is None:
             _volumes = []
+        _inference_accelerators = inference_accelerators
+        if _inference_accelerators is None:
+            _inference_accelerators = []
         return TaskDefinition(
             taskDefinitionArn=None,
             containerDefinitions=container_definitions,
@@ -161,6 +204,14 @@ class TaskDefinition(BaseModel):
             runtimePlatform=RuntimePlatform(cpuArchitecture=cpu_architecture),
             enableFaultInjection=False,
             tags=tags,
+            ipcMode=ipc_mode,
+            pidMode=pid_mode,
+            proxyConfiguration=proxy_configuration,
+            inferenceAccelerators=_inference_accelerators,
+            ephemeralStorage=ephemeral_storage,
+            registeredAt=None,
+            registeredBy=None,
+            deregisteredAt=None,
         )
 
     def get_container_definition_by_name(self, name: str) -> ContainerDefinition | None:
@@ -191,5 +242,9 @@ class TaskDefinition(BaseModel):
                 "requires_attributes",
                 "compatibilities",
                 "revision",
+                "registered_at",
+                "registered_by",
+                "deregistered_at",
             },
+            exclude_none=True,
         )

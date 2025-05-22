@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Dict, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -84,6 +84,33 @@ class Secrets(BaseModel):
     value_from: str = Field(alias="valueFrom")
 
 
+class HealthCheck(BaseModel):
+    command: list[str]
+    interval: int
+    timeout: int
+    retries: int
+    start_period: Optional[int] = Field(alias="startPeriod")
+
+
+class RepositoryCredentials(BaseModel):
+    credentials_parameter: str = Field(alias="credentialsParameter")
+
+
+class ResourceRequirement(BaseModel):
+    type: Literal["GPU", "InferenceAccelerator"]
+    value: str
+
+
+class FirelensConfiguration(BaseModel):
+    type: Literal["fluentd", "fluentbit"]
+    options: Optional[Dict[str, str]] = Field(default_factory=dict)
+
+
+class SystemControl(BaseModel):
+    namespace: str
+    value: str
+
+
 class ContainerDefinition(BaseModel):
     name: str = Field(alias="name")
     image: str = Field(alias="image")
@@ -108,6 +135,16 @@ class ContainerDefinition(BaseModel):
     u_limits: Optional[list[ULimit]] = Field(alias="ulimits", default_factory=list)
     log_configuration: LogConfiguration = Field(alias="logConfiguration")
     system_controls: list = Field(alias="systemControls")
+    health_check: Optional[HealthCheck] = Field(alias="healthCheck", default=None)
+    repository_credentials: Optional[RepositoryCredentials] = Field(alias="repositoryCredentials", default=None)
+    resource_requirements: Optional[list[ResourceRequirement]] = Field(
+        alias="resourceRequirements", default_factory=list
+    )
+    firelens_configuration: Optional[FirelensConfiguration] = Field(alias="firelensConfiguration", default=None)
+    start_timeout: Optional[int] = Field(alias="startTimeout", default=None)
+    stop_timeout: Optional[int] = Field(alias="stopTimeout", default=None)
+    privileged: Optional[bool] = Field(default=None)
+    readonly_root_filesystem: Optional[bool] = Field(alias="readonlyRootFilesystem", default=None)
 
     @staticmethod
     def generate(
@@ -123,6 +160,14 @@ class ContainerDefinition(BaseModel):
         volumes_from: list[VolumesFrom] | None = None,
         mount_points: list[MountPoint] | None = None,
         u_limits: list[ULimit] | None = None,
+        health_check: HealthCheck | None = None,
+        repository_credentials: RepositoryCredentials | None = None,
+        resource_requirements: list[ResourceRequirement] | None = None,
+        firelens_configuration: FirelensConfiguration | None = None,
+        start_timeout: int | None = None,
+        stop_timeout: int | None = None,
+        privileged: bool | None = None,
+        readonly_root_filesystem: bool | None = None,
     ) -> "ContainerDefinition":
         _mount_points = mount_points
         if _mount_points is None:
@@ -136,6 +181,9 @@ class ContainerDefinition(BaseModel):
         _volumes_from = volumes_from
         if _volumes_from is None:
             _volumes_from = []
+        _resource_requirements = resource_requirements
+        if _resource_requirements is None:
+            _resource_requirements = []
         return ContainerDefinition(
             name=name,
             image=image,
@@ -155,4 +203,12 @@ class ContainerDefinition(BaseModel):
             ulimits=_u_limits,
             logConfiguration=log_configuration,
             systemControls=[],
+            healthCheck=health_check,
+            repositoryCredentials=repository_credentials,
+            resourceRequirements=_resource_requirements,
+            firelensConfiguration=firelens_configuration,
+            startTimeout=start_timeout,
+            stopTimeout=stop_timeout,
+            privileged=privileged,
+            readonlyRootFilesystem=readonly_root_filesystem,
         )
