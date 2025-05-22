@@ -58,6 +58,10 @@ def test_task_definition_extended_parameters():
         registeredAt=datetime.now(),
         registeredBy="test-user",
         deregisteredAt=None,
+        taskDefinitionArn="",
+        revision=1,
+        requiresAttributes=[],
+        compatibilities=[]
     )
 
     # Verify fields are correctly set
@@ -96,6 +100,10 @@ def test_export_excludes_registration_metadata():
         registeredAt=datetime.now(),
         registeredBy="test-user",
         deregisteredAt=None,
+        taskDefinitionArn="",
+        revision=1,
+        requiresAttributes=[],
+        compatibilities=[]
     )
 
     exported = task_def.export()

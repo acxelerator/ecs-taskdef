@@ -61,6 +61,7 @@ def test_container_definition_extended_parameters():
         stopTimeout=30,
         privileged=True,
         readonlyRootFilesystem=False,
+        dependsOn=[],
     )
 
     # Verify fields are correctly set
