@@ -61,7 +61,7 @@ def test_task_definition_extended_parameters():
         taskDefinitionArn="",
         revision=1,
         requiresAttributes=[],
-        compatibilities=[]
+        compatibilities=[],
     )
 
     # Verify fields are correctly set
@@ -103,7 +103,7 @@ def test_export_excludes_registration_metadata():
         taskDefinitionArn="",
         revision=1,
         requiresAttributes=[],
-        compatibilities=[]
+        compatibilities=[],
     )
 
     exported = task_def.export()
