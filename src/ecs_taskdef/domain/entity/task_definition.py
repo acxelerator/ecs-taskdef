@@ -139,8 +139,9 @@ class TaskDefinition(BaseModel):
     deregistered_at: Optional[datetime] = Field(alias="deregisteredAt", default=None)
 
     # Validator for CPU and memory combinations
+    @classmethod
     @field_validator("memory")
-    def validate_cpu_memory_combination(self, memory_value, info):
+    def validate_cpu_memory_combination(cls, memory_value, info):
         cpu_value = info.data.get("cpu")
         # Skip validation if CPU is not provided
         if not cpu_value:
