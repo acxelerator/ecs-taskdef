@@ -13,9 +13,19 @@ assignees: 'copilot'
 ## 提案する解決策
 <!-- 実現したいことの明確かつ簡潔な説明 -->
 
+# 確認事項
+
+修正後に以下の内容を確認してください
+
 ## コード整形
 
 修正後に以下の2つのコマンドが通ることを確認してください
 
 - `$ ruff check`
 - `$ ruff format --check .`
+
+## テスト
+
+修正後にテストが通ることを確認してください
+
+- `$ rye run python -m pytest --cov=ecs_taskdef`
