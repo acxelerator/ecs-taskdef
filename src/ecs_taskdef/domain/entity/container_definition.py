@@ -25,7 +25,7 @@ PROTOCOL = Literal["tcp", "udp"]
 
 
 class ULimit(BaseModel):
-    name: str
+    name: str = Field()
     soft_limit: int = Field(alias="softLimit")
     hard_limit: int = Field(alias="hardLimit")
 
@@ -33,7 +33,7 @@ class ULimit(BaseModel):
 class PortMapping(BaseModel):
     container_port: int = Field(alias="containerPort")
     host_port: int = Field(alias="hostPort")
-    protocol: Optional[PROTOCOL]
+    protocol: Optional[PROTOCOL] = Field(default=None)
 
 
 class MountPoint(BaseModel):
@@ -49,7 +49,7 @@ class LogConfigurationOptions(BaseModel):
 
 
 class DependsOn(BaseModel):
-    condition: Literal["START", "COMPLETE", "SUCCESS", "HEALTHY"]
+    condition: Literal["START", "COMPLETE", "SUCCESS", "HEALTHY"] = Field()
     container_name: str = Field(alias="containerName")
 
 
@@ -85,10 +85,10 @@ class Secrets(BaseModel):
 
 
 class HealthCheck(BaseModel):
-    command: list[str]
-    interval: int
-    timeout: int
-    retries: int
+    command: list[str] = Field()
+    interval: int = Field()
+    timeout: int = Field()
+    retries: int = Field()
     start_period: Optional[int] = Field(alias="startPeriod")
 
 
@@ -97,18 +97,18 @@ class RepositoryCredentials(BaseModel):
 
 
 class ResourceRequirement(BaseModel):
-    type: Literal["GPU", "InferenceAccelerator"]
-    value: str
+    type: Literal["GPU", "InferenceAccelerator"] = Field()
+    value: str = Field()
 
 
 class FirelensConfiguration(BaseModel):
-    type: Literal["fluentd", "fluentbit"]
+    type: Literal["fluentd", "fluentbit"] = Field()
     options: Optional[Dict[str, str]] = Field(default_factory=dict)
 
 
 class SystemControl(BaseModel):
-    namespace: str
-    value: str
+    namespace: str = Field()
+    value: str = Field()
 
 
 class ContainerDefinition(BaseModel):
