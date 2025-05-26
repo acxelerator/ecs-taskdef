@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class EnvironmentVariable(BaseModel):
-    name: str
-    value: str
+    name: str = Field()
+    value: str = Field()
 
     @staticmethod
     def from_dict(d: dict) -> list["EnvironmentVariable"]:
