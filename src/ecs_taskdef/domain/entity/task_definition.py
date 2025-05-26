@@ -71,8 +71,8 @@ class RuntimePlatform(BaseModel):
 
 
 class Tag(BaseModel):
-    key: str
-    value: str
+    key: str = Field()
+    value: str = Field()
 
 
 class VolumesHost(BaseModel):
@@ -80,8 +80,8 @@ class VolumesHost(BaseModel):
 
 
 class Volumes(BaseModel):
-    name: str
-    host: VolumesHost
+    name: str = Field()
+    host: VolumesHost = Field()
 
     @staticmethod
     def generate_host(name: str, source_path: str):
@@ -98,12 +98,12 @@ class EphemeralStorage(BaseModel):
 
 
 class KeyValuePair(BaseModel):
-    name: str
-    value: str
+    name: str = Field()
+    value: str = Field()
 
 
 class ProxyConfiguration(BaseModel):
-    type: PROXY_TYPE
+    type: PROXY_TYPE = Field()
     container_name: str = Field(alias="containerName")
     properties: list[KeyValuePair] = Field(default_factory=list)
 
@@ -126,7 +126,7 @@ class TaskDefinition(BaseModel):
     memory: str = Field(alias="memory")
     runtime_platform: RuntimePlatform = Field(alias="runtimePlatform")
     enable_fault_injection: bool = Field(alias="enableFaultInjection")
-    tags: list[Tag]
+    tags: list[Tag] = Field()
     ipc_mode: Optional[IPC_MODE] = Field(alias="ipcMode", default=None)
     pid_mode: Optional[PID_MODE] = Field(alias="pidMode", default=None)
     proxy_configuration: Optional[ProxyConfiguration] = Field(alias="proxyConfiguration", default=None)
