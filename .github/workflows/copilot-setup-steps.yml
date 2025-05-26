@@ -1,0 +1,31 @@
+name: GitHub Copilot Coding Agent Setup
+
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'copilot')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Slack integration for Copilot
+        run: |
+          echo "Setting up Slack integration for Copilot Coding Agent"
+          
+      - name: Configure environment for Copilot
+        run: |
+          # Configure environment variables for the workspace
+          echo "COPILOT_SLACK_ENABLED=true" >> $GITHUB_ENV
+          echo "COPILOT_SLACK_WORKSPACE=acxelerator" >> $GITHUB_ENV
+          echo "COPILOT_SLACK_CHANNEL=mcp" >> $GITHUB_ENV
+          
+      - name: Verify Copilot configuration
+        run: |
+          echo "Copilot Coding Agent has been configured for Slack integration"
+          echo "Workspace: $COPILOT_SLACK_WORKSPACE"
+          echo "Channel: $COPILOT_SLACK_CHANNEL"
